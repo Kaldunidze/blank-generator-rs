@@ -2,7 +2,6 @@ use iced::border::Radius;
 use iced::widget::{column, container, row, slider, svg, text};
 use iced::{Border, Center, Element, Fill, Font, Length, Task, Theme, color};
 
-// ============ ФУНКЦИЯ: SLIDER + ТЕКСТ ЗНАЧЕНИЯ ============
 pub fn slider_with_value<'a, Message: 'a + Clone, T>(
     range: std::ops::RangeInclusive<T>,
     value: T,
@@ -28,21 +27,18 @@ where
     .into()
 }
 
-// ============ СОСТОЯНИЕ ПРИЛОЖЕНИЯ ============
 #[derive(Default, Debug)]
 struct App {
     width_num: i32,
     svg_content: Option<String>,
 }
 
-// ============ СООБЩЕНИЯ ============
 #[derive(Clone, Debug)]
 enum Message {
     WidthNum(i32),
     SvgLoaded(Result<Vec<String>, String>),
 }
 
-// ============ BOOT ФУНКЦИЯ ============
 fn boot() -> (App, Task<Message>) {
     let app = App { width_num: 5, svg_content: None };
 
@@ -59,7 +55,6 @@ fn boot() -> (App, Task<Message>) {
     (app, task)
 }
 
-// ============ UPDATE ЛОГИКА ============
 fn update(app: &mut App, msg: Message) -> Task<Message> {
     match msg {
         Message::WidthNum(c) => {
@@ -79,7 +74,6 @@ fn update(app: &mut App, msg: Message) -> Task<Message> {
     Task::none()
 }
 
-// ============ VIEW ЛОГИКА ============
 fn view(app: &App) -> Element<'_, Message> {
     let param_buttons = column![
         text("width_num").width(Fill).size(20).center(),
@@ -145,12 +139,11 @@ fn view(app: &App) -> Element<'_, Message> {
     window
 }
 
-// ============ ТОЧКА ВХОДА ============
 fn main() -> iced::Result {
     iced::application(boot, update, view)
         .title("Стильное приложение")
         .theme(Theme::CatppuccinMocha)
-        .window_size(iced::Size::new(1200.0, 1600.0))
+        .window_size(iced::Size::new(1200.0, 1200.0))
         .centered()
         .run()
 }
