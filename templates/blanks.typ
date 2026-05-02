@@ -2,16 +2,19 @@
 // ─── Configuration ────────────────────────────────────────────────────────────
 // Edit these values, or generate via the GUI (app.py).
 
-#let start_team  = 1
-#let finish_team = 60
-#let cols        = 4            // blanks per row
-#let rows        = 9            // rows per page  (4×9 = 36 blanks)
-#let landscape   = false        // true = A4 landscape, false = A4 portrait
-#let location    = ""           // event / location label
-#let team_prefix = "Team №"
-#let font_name   = "Helvetica Neue"           // leave empty for typst default
-// #let logo     = image("/assets/logo.svg")
-#let logo        = none         // set to image(...) or leave as none
+#import sys: inputs
+
+#let start_team  = inputs.start_team
+#let finish_team = inputs.finish_team
+#let cols        = inputs.cols
+#let rows        = inputs.rows
+#let landscape   = inputs.landscape
+#let location    = inputs.location
+#let team_prefix = inputs.team_prefix
+#let font_name   = inputs.font_name
+#let logo_path   = inputs.logo_path
+#let team_names  = inputs.team_names
+#let logo        = if logo_path == "" { none } else { image(logo_path) }
 
 // ─── Optional font ─────────────────────────────────────────────────────────────
 #if font_name != "" {
@@ -51,9 +54,18 @@
 
 // ─── Output ────────────────────────────────────────────────────────────────────
 
-#for i in range(start_team, finish_team + 1) {
-  let label = team_prefix + str(i)
-  blank_page(label, location, logo, cols, rows, 1)
+#if team_names.len() > 0 {
+  for i in range(0, team_names.len()) {
+    let team_number = i + 1
+    let team_name = team_names.at(i)
+    let label = team_prefix + str(team_number) + " " + team_name
+    blank_page(label, location, logo, cols, rows, 1)
+  }
+} else {
+  for i in range(start_team, finish_team + 1) {
+    let label = team_prefix + str(i)
+    blank_page(label, location, logo, cols, rows, 1)
+  }
 }
 
 
