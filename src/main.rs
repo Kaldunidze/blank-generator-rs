@@ -1,9 +1,6 @@
 use iced::border::Radius;
-use iced::widget::{
-    button, center_x, center_y, checkbox, column, container, image, radio, rich_text, row,
-    scrollable, slider, space, span, text, text_input, toggler,
-};
-use iced::{Border, Center, Color, Element, Fill, Font, Length, Pixels, Theme, color};
+use iced::widget::{column, container, row, slider, svg, text};
+use iced::{Border, Center, Element, Fill, Font, Length, Task, Theme, color};
 
 // ============ ФУНКЦИЯ: SLIDER + ТЕКСТ ЗНАЧЕНИЯ ============
 pub fn slider_with_value<'a, Message: 'a + Clone, T>(
@@ -35,40 +32,85 @@ where
 #[derive(Default, Debug)]
 struct App {
     width_num: i32,
+    svg_content: Option<String>,
 }
 
 // ============ СООБЩЕНИЯ ============
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 enum Message {
     WidthNum(i32),
+    SvgLoaded(Result<Vec<String>, String>),
 }
 
-// ============ BOOT ФУНКЦИЯ (создает начальное состояние!) ============
-fn boot(_flags: ()) -> (App, iced::Task<Message>) {
-    (App { width_num: 5 }, iced::Task::none())
+// ============ BOOT ФУНКЦИЯ ============
+fn boot() -> (App, Task<Message>) {
+    let app = App { width_num: 5, svg_content: None };
+
+    let task = iced::Task::perform(
+        async move {
+            match typst_bake::document!("blanks.typ").to_svg() {
+                Ok(svgs) => Message::SvgLoaded(Ok(svgs)),
+                Err(e) => Message::SvgLoaded(Err(format!("{}", e))),
+            }
+        },
+        |msg| msg,
+    );
+
+    (app, task)
 }
 
 // ============ UPDATE ЛОГИКА ============
-fn update(app: &mut App, msg: Message) -> iced::Task<Message> {
+fn update(app: &mut App, msg: Message) -> Task<Message> {
     match msg {
         Message::WidthNum(c) => {
             app.width_num = c;
         }
+        Message::SvgLoaded(result) => {
+            match result {
+                Ok(svgs) => {
+                    app.svg_content = svgs.into_iter().next();
+                }
+                Err(e) => {
+                    eprintln!("Ошибка генерации SVG: {}", e);
+                }
+            }
+        }
     }
-    iced::Task::none() // ← Возвращаем Task!
+    Task::none()
 }
 
 // ============ VIEW ЛОГИКА ============
 fn view(app: &App) -> Element<'_, Message> {
-    //======================================================
-    // настройки параметров страницы
-    //======================================================
     let param_buttons = column![
         text("width_num").width(Fill).size(20).center(),
         slider_with_value(0..=10, app.width_num, Message::WidthNum),
     ];
 
-    //======================================================
+    let content = column![
+        match &app.svg_content {
+            Some(svg_string) => {
+                let handle = iced::widget::svg::Handle::from_memory(svg_string.clone().into_bytes());
+                
+                let svg_element: Element<'_, Message> = container(
+                    svg(handle)
+                        .width(Fill)
+                        .height(Fill)
+                )
+                .width(Fill)
+                .height(Fill)
+                .center_x(Fill)
+                .center_y(Fill)
+                .into();
+                
+                svg_element
+            }
+            None => {
+                text("⏳ Генерация SVG...").size(24).into()
+            }
+        },
+    ]
+    .width(Length::FillPortion(3))
+    .height(Fill);
 
     let menu = column![
         text("Настройки")
@@ -78,15 +120,11 @@ fn view(app: &App) -> Element<'_, Message> {
             .width(Fill)
             .center(),
         param_buttons,
-        "I am to the right!",
+        text(format!("width_num = {}", app.width_num)),
     ]
     .spacing(8)
     .width(Length::FillPortion(2))
     .height(Fill);
-
-    let content = column!["Main content area"]
-        .width(Length::FillPortion(3))
-        .height(Fill);
 
     let window: Element<_> = row![
         container(menu).style(|_theme: &Theme| container::Style {
@@ -109,10 +147,10 @@ fn view(app: &App) -> Element<'_, Message> {
 
 // ============ ТОЧКА ВХОДА ============
 fn main() -> iced::Result {
-    iced::application(boot, update, view) // ✅ boot функция первым аргументом!
-        .title("Стильное приложение") // ✅ Заголовок здесь!
-        .theme(Theme::CatppuccinMocha) // 🎨 Тема
-        .window_size(iced::Size::new(900.0, 600.0))
+    iced::application(boot, update, view)
+        .title("Стильное приложение")
+        .theme(Theme::CatppuccinMocha)
+        .window_size(iced::Size::new(1200.0, 1600.0))
         .centered()
         .run()
 }

@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version = "0.14.0", features = ["image"] }
+iced = { version = "0.14.0", features = ["image", "svg"] }
 num-traits = "0.2.19"
 typst-bake = { version = "0.1.9", features = ["full"] }
+
+[package.metadata.typst-bake]
+template-dir = "./templates"
+fonts-dir = "./fonts"
