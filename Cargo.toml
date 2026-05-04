@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version = "0.14.0", features = ["image", "svg"] }
+iced = { version = "0.14.0", features = ["svg"] }
 num-traits = "0.2.19"
 rfd = "0.15.4"
 typst-bake = { version = "0.1.9", features = ["pdf", "svg"] }
@@ -16,9 +16,5 @@ fonts-dir = "./fonts"
 [profile.release]
 lto = "thin"
 strip = true
-
-[profile.size]
-inherits = "release" # Start with release defaults
-opt-level = "z"
-codegen-units = 1    # Better optimizations at the cost of compile time
-panic = "abort"      # Reduce binary size by removing stack unwinding
+codegen-units = 1
+panic = "abort"
